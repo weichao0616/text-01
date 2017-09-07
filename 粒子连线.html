@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    *{
+      margin: 0;
+      padding: 0;
+    }
+    canvas{
+      background-color: #000;
+    }
+  </style>
+</head>
+<body>
+<canvas></canvas>
+<script>
+  /*
+  * 需求:随机生成一些移动的点,把点进行连线
+  * 点:大小 颜色 可以移动
+  *
+  * 线:颜色 粗细 根据点的距离判断是都连线
+  *
+  * 窗口自适应
+  *
+  * */
+
+  var cs = document.querySelector("canvas");
+  var ctx = cs.getContext("2d");
+  var w, h,pointArr = [];
+
+
+
+  autoSize();
+  window.onresize =autoSize;
+//粒子参数
+  var option={
+    pointNum:30,
+    pointColor:"hotpink",
+    pointSpeed:1,
+    pointStep:1,
+    radius:1,
+    lineColor:"yellow",
+    maxDistance:150
+  }
+
+
+  //点对象
+  function Point(){
+//    坐标
+    this.x = Math.random()*w;
+    this.y = Math.random()*h;
+
+    this.xSpeed = 2;
+    this.xDirection = parseInt(Math.random()*2) == 1 ? 1:-1;
+
+    this.ySpeed = 2;
+    this.yDirection = parseInt(Math.random()*2) == 1 ? 1:-1;
+
+    this.radius = option.radius + Math.random()*2;
+    this.color = option.pointColor;
+
+//  移动
+    this.move = function(){
+      this.x += this.xSpeed * this.xDirection;
+      this.y += this.ySpeed * this.yDirection;
+    }
+
+//    边界检测
+    this.border = function(){
+      if(this.x < 0 || this.x > (w-this.radius*2)){
+        this.xDirection*= -1;
+      }
+      if(this.y < 0 || this.y > (h-this.radius*2)){
+        this.yDirection*= -1;
+      }
+
+    }
+
+//    绘制
+    this.draw = function(){
+      ctx.beginPath();
+      ctx.fillStyle = this.color;
+      ctx.arc(this.x,this.y,this.radius,0,360);
+      ctx.fill();
+
+    }
+  }
+
+  //  生成漫天繁星
+  function createPoint(){
+    for (var i = 0; i < option.pointNum; i++) {
+      pointArr.push(new Point());
+    }
+  }
+
+  createPoint();
+
+
+//连线的方法
+  function line(point){
+    for (let i = 0; i < pointArr.length; i++) {
+        var obj = pointArr[i];
+      var d = 0;
+        if((d = getDistance(point.x,point.y,obj.x,obj.y)) < option.maxDistance){
+          ctx.beginPath();
+          ctx.moveTo(point.x,point.y);
+          ctx.lineTo(obj.x,obj.y);
+          ctx.lineWidth = 1;
+          let opacity = 1 - d/option.maxDistance;
+          ctx.strokeStyle = "rgba(255,255,0,"+opacity+")";
+          ctx.stroke();
+        }
+    }
+
+  }
+
+
+
+
+
+//  自试适应宽高
+  function autoSize(){
+      w = cs.width = window.innerWidth;
+      h = cs.height = window.innerHeight;
+  }
+
+//算点距离的方法
+  function getDistance(x1,y1,x2,y2){
+    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2,2),0.5);
+  }
+
+
+  setInterval(function () {
+    ctx.clearRect(0, 0, w, h);
+    for (var i = 0; i < pointArr.length; i++) {
+      var obj = pointArr[i];
+      obj.border();
+      obj.move();
+      obj.draw();
+    }
+
+    for (var i = 0; i < pointArr.length; i++) {
+        var obj = pointArr[i];
+      line(obj);
+    }
+
+  },50);
+
+</script>
+</body>
+</html>
